@@ -23,7 +23,7 @@ Controls
 
 Getting Started
 Clone the repository:
-    git clone https://github.com/your-username/shadow-fight-game.git
+    git clone https://github.com/Mxolisi-Khumalo/shadow-fight-game.git
 
 Navigate into the folder:
     cd shadow-fight-game
