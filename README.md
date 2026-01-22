@@ -1,5 +1,3 @@
-Sure thing! Here's a simplified, text-only version of the README without emojis, headings, or lines:
-
 Shadow Fight Game
 A simple 2D fighting game built entirely with HTML, CSS, and JavaScript. Players can select their character, choose to play against another player or AI, and battle it out with punches and kicks.
 
@@ -23,7 +21,7 @@ Controls
 
 Getting Started
 Clone the repository:
-    git clone https://github.com/Mxolisi-Khumalo/shadow-fight-game.git
+    git clone https://github.com/Mxolisi-Khumalo/Fighting-game.git
 
 Navigate into the folder:
     cd shadow-fight-game
