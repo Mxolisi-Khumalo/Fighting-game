@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NEON COMBAT: ULTIMATE</title>
+    <title>NEON COMBAT: HYPER EDITION</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
@@ -52,11 +52,11 @@
         .health-bar {
             height: 100%; width: 100%;
             background: linear-gradient(90deg, #ff416c, #ff4b2b);
-            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .special-container {
-            height: 8px; width: 100%; margin-top: 5px;
+            height: 10px; width: 100%; margin-top: 5px;
             background: #222; transform: skewX(-20deg);
             border: 1px solid #444;
             display: flex; justify-content: flex-start;
@@ -158,7 +158,7 @@
 
     <div id="menuScreen" class="screen active">
         <h1>NEON COMBAT</h1>
-        <h2>ULTIMATE</h2>
+        <h2>HYPER EDITION</h2>
         <div class="char-grid" id="charGrid"></div>
         <div id="instruct" style="color:#888; margin-bottom:20px;">SELECT YOUR FIGHTER</div>
         <button class="btn" id="startBtn" disabled>START GAME</button>
@@ -206,15 +206,16 @@
     // --- CLASSES ---
 
     class Projectile {
-        constructor(x, y, vx, color, owner) {
+        constructor(x, y, vx, color, owner, ownerName) {
             this.x = x;
             this.y = y;
             this.vx = vx;
             this.color = color;
             this.owner = owner; // 'p1' or 'p2'
+            this.ownerName = ownerName;
             this.radius = 10;
             this.active = true;
-            this.isSpecial = false; // For Blaze's big fireball, Frost's beam
+            this.isSpecial = false; 
         }
 
         update() {
@@ -231,13 +232,10 @@
             c.fillStyle = "#fff";
             c.beginPath();
             if(this.isSpecial && this.ownerName === "BLAZE") {
-                // Giant fireball
                 c.arc(this.x, this.y, 40, 0, Math.PI*2);
             } else if (this.isSpecial && this.ownerName === "FROST") {
-                // Ice Beam
                 c.fillRect(this.x - 50, this.y - 10, 100, 20);
             } else {
-                // Standard shot
                 c.arc(this.x, this.y, 8, 0, Math.PI*2);
             }
             c.fill();
@@ -295,7 +293,6 @@
             const centerY = this.position.y + 40 + breathe;
             const dir = this.facingRight ? 1 : -1;
 
-            // Attack Animation Interpolation
             let punchExtend = 0;
             let kickExtend = 0;
             if (this.isAttacking) {
@@ -307,14 +304,12 @@
                 if (this.attackType === 'shoot') punchExtend = extension * 30;
             }
 
-            // Shadow
             const distFromFloor = Math.max(0, FLOOR - (centerY + 60));
             const shadowSize = Math.max(10, 30 - distFromFloor * 0.1);
             const shadowAlpha = Math.max(0.1, 0.5 - distFromFloor * 0.002);
             c.fillStyle = `rgba(0,0,0,${shadowAlpha})`;
             c.beginPath(); c.ellipse(centerX, FLOOR, shadowSize, shadowSize * 0.3, 0, 0, Math.PI*2); c.fill();
 
-            // Render Body Parts (3D Effect)
             let footBaseY = inAir ? centerY + 80 : FLOOR - 5;
 
             // Back Leg
@@ -373,7 +368,6 @@
                 c.lineTo(centerX + (30*dir), centerY - 15);
                 c.lineTo(centerX + (30*dir) + (punchExtend*1.5*dir), centerY - 15);
             } else if (this.attackType === 'special' && this.isAttacking && this.stats.name === 'TITAN') {
-                // Titan hands up
                 c.lineTo(centerX, centerY - 80);
             } else {
                 c.lineTo(centerX + (20*dir) - runAnim, centerY + 20 + armOffset);
@@ -381,7 +375,6 @@
             }
             c.stroke();
 
-            // Frozen Overlay
             if(this.frozen) {
                 c.fillStyle = "rgba(200, 240, 255, 0.6)";
                 c.fillRect(this.position.x - 10, this.position.y - 10, this.width + 20, this.height + 20);
@@ -389,7 +382,6 @@
 
             c.restore();
 
-            // Update Attack Box
             if(this.facingRight) this.attackBox.position.x = this.position.x + this.width;
             else this.attackBox.position.x = this.position.x - this.attackBox.width + 50;
             this.attackBox.position.y = this.position.y + 20;
@@ -402,10 +394,7 @@
                 this.position.x += this.velocity.x;
                 this.position.y += this.velocity.y;
             }
-            
             this.draw();
-
-            // Gravity
             if (this.position.y + this.height + this.velocity.y >= FLOOR) {
                 this.velocity.y = 0;
                 this.position.y = FLOOR - this.height;
@@ -414,7 +403,6 @@
                 this.velocity.y += GRAVITY;
                 this.onGround = false;
             }
-
             if(this.position.x < 0) this.position.x = 0;
             if(this.position.x + 50 > canvas.width) this.position.x = canvas.width - 50;
         }
@@ -424,20 +412,18 @@
             this.isAttacking = true;
             this.attackType = 'shoot';
             this.attackFrame = 0;
-            
-            // Spawn Projectile
             setTimeout(() => {
                 let dir = this.facingRight ? 1 : -1;
                 let proj = new Projectile(
                     this.position.x + (this.width/2) + (40*dir), 
                     this.position.y + 40, 
-                    12 * dir, 
+                    15 * dir,  // Faster Projectile
                     this.stats.accent,
-                    this.isP1 ? 'p1' : 'p2'
+                    this.isP1 ? 'p1' : 'p2',
+                    this.stats.name
                 );
                 projectiles.push(proj);
             }, 100);
-
             setTimeout(() => { this.isAttacking = false; }, 200);
         }
 
@@ -446,15 +432,9 @@
             this.isAttacking = true;
             this.attackType = type;
             this.attackFrame = 0;
-            
-            if(type === 'special') {
-                this.executeSpecial();
-                return;
-            }
-
+            if(type === 'special') { this.executeSpecial(); return; }
             if(type === 'kick') { this.attackBox.width = 110; this.attackBox.height = 50; } 
             else if (type === 'punch') { this.attackBox.width = 90; this.attackBox.height = 30; } 
-            
             const duration = type === 'kick' ? 400 : 250;
             setTimeout(() => { this.isAttacking = false; this.attackType = ''; }, duration);
         }
@@ -462,47 +442,41 @@
         executeSpecial() {
             let opp = this.isP1 ? player2 : player1;
             let dir = this.facingRight ? 1 : -1;
-            this.special = 0; // Drain bar
+            this.special = 0;
             document.getElementById(this.isP1 ? 'p1Special' : 'p2Special').style.width = '0%';
 
             switch(this.stats.name) {
-                case 'SHADOW': // Teleport Strike
+                case 'SHADOW': 
                     createParticles(this.position.x, this.position.y, this.stats.accent, 20);
-                    this.position.x = opp.position.x - (50 * dir); // Teleport behind
+                    this.position.x = opp.position.x - (50 * dir); 
                     this.facingRight = !this.facingRight;
                     this.attackBox.width = 100; this.attackBox.height = 50;
                     setTimeout(() => { this.isAttacking = false; }, 400);
                     break;
-
-                case 'TITAN': // Seismic Slam
+                case 'TITAN': 
                     this.velocity.y = -20;
-                    setTimeout(() => {
-                        this.velocity.y = 30; // Slam down
-                    }, 200);
+                    setTimeout(() => { this.velocity.y = 30; }, 200);
                     setTimeout(() => {
                         shakeIntensity = 20;
-                        if(opp.onGround) opp.takeHit(30); // Unavoidable if on ground
+                        if(opp.onGround) { opp.takeHit(40); updateBars(); } 
                         this.isAttacking = false;
                     }, 500);
                     break;
-
-                case 'BLAZE': // Hellfire Wall
-                    let fire = new Projectile(this.position.x + (50*dir), this.position.y + 40, 6 * dir, "#f39c12", this.isP1?'p1':'p2');
-                    fire.radius = 40; fire.isSpecial = true; fire.ownerName = "BLAZE";
+                case 'BLAZE': 
+                    let fire = new Projectile(this.position.x + (50*dir), this.position.y + 40, 8 * dir, "#f39c12", this.isP1?'p1':'p2', "BLAZE");
+                    fire.radius = 40; fire.isSpecial = true;
                     projectiles.push(fire);
                     setTimeout(() => { this.isAttacking = false; }, 500);
                     break;
-
-                case 'FROST': // Ice Lance
-                    let ice = new Projectile(this.position.x + (50*dir), this.position.y + 40, 25 * dir, "#fff", this.isP1?'p1':'p2');
-                    ice.isSpecial = true; ice.ownerName = "FROST";
+                case 'FROST': 
+                    let ice = new Projectile(this.position.x + (50*dir), this.position.y + 40, 30 * dir, "#fff", this.isP1?'p1':'p2', "FROST");
+                    ice.isSpecial = true;
                     projectiles.push(ice);
                     setTimeout(() => { this.isAttacking = false; }, 400);
                     break;
-
-                case 'VOLT': // Thunder Dash
+                case 'VOLT': 
                     createParticles(this.position.x, this.position.y, "#ffeb3b", 20);
-                    this.velocity.x = 40 * dir; // Super speed
+                    this.velocity.x = 50 * dir; 
                     this.attackBox.width = 200;
                     setTimeout(() => { this.velocity.x = 0; this.isAttacking = false; }, 200);
                     break;
@@ -516,7 +490,7 @@
             createParticles(this.position.x + 25, this.position.y + 50, "#fff", 8);
             if(dmg > 10) shakeIntensity = 5;
             if(this.health <= 0) { this.health = 0; this.dead = true; }
-            this.frozen = false; // Breaking freeze on hit
+            this.frozen = false;
         }
     }
 
@@ -534,7 +508,7 @@
         grad.addColorStop(0, "#fff"); grad.addColorStop(0.3, color); grad.addColorStop(1, adjustColor(color, -60));
         ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
     }
-    function adjustColor(col, amt) { return col; } // Simplified
+    function adjustColor(col, amt) { return col; } 
 
     class Particle {
         constructor(x, y, color) {
@@ -569,8 +543,6 @@
         if(!gameActive) return;
         window.requestAnimationFrame(gameLoop);
         
-        // Screen Shake
-        c.save();
         if(shakeIntensity > 0) {
             let dx = Math.random() * shakeIntensity - shakeIntensity/2;
             let dy = Math.random() * shakeIntensity - shakeIntensity/2;
@@ -579,7 +551,6 @@
             if(shakeIntensity < 0.5) shakeIntensity = 0;
         }
 
-        // Background
         c.fillStyle = "#111"; c.fillRect(-10, -10, canvas.width+20, canvas.height+20);
         c.strokeStyle = "#333"; c.lineWidth = 1; c.beginPath();
         for(let i=0; i<canvas.width; i+=60) { c.moveTo(i, FLOOR); c.lineTo(i-200, canvas.height); }
@@ -590,82 +561,60 @@
 
         player1.update(); player2.update();
 
-        // Projectiles Logic
+        // Projectiles
         projectiles.forEach((p, i) => {
             p.update();
             let opp = (p.owner === 'p1') ? player2 : player1;
             
-            // Hit Opponent
+            // INSTANT HIT CHECK
             if(p.active && Math.abs(p.x - (opp.position.x + 25)) < 30 && Math.abs(p.y - (opp.position.y + 60)) < 60) {
                 p.active = false;
+                let dmg = 10;
                 if(p.isSpecial && p.ownerName === "FROST") {
-                    opp.frozen = true;
-                    opp.takeHit(10);
+                    opp.frozen = true; dmg = 15;
                     setTimeout(() => opp.frozen = false, 2000);
                 } else if(p.isSpecial && p.ownerName === "BLAZE") {
-                    opp.takeHit(30);
-                } else {
-                    opp.takeHit(5); // Normal shot damage
+                    dmg = 35;
                 }
+                opp.takeHit(dmg);
+                updateBars();
             }
             if(!p.active) projectiles.splice(i, 1);
         });
 
         particles.forEach((p, i) => { if(p.alpha <= 0) particles.splice(i, 1); else { p.update(); p.draw(); } });
-
-        // Restore context (End Screen Shake)
         c.restore();
 
-        // --- MOVEMENT & INPUT LOGIC ---
-
-        // Player 1
         player1.velocity.x = 0;
         if(keys.a && player1.position.x > 0) { player1.velocity.x = -player1.stats.spd; player1.facingRight = false; }
         else if(keys.d && player1.position.x < canvas.width) { player1.velocity.x = player1.stats.spd; player1.facingRight = true; }
 
-        // Player 2
         if(!isAI) {
             player2.velocity.x = 0;
             if(keys.ArrowLeft && player2.position.x > 0) { player2.velocity.x = -player2.stats.spd; player2.facingRight = false; }
             else if(keys.ArrowRight && player2.position.x < canvas.width) { player2.velocity.x = player2.stats.spd; player2.facingRight = true; }
         } else {
-            // AI Logic
             let dist = player1.position.x - player2.position.x;
             let range = Math.abs(dist);
-            
             if(range > 200) {
-                // Move closer
                 player2.velocity.x = (dist > 0 ? 1 : -1) * (player2.stats.spd * 0.7);
                 player2.facingRight = dist > 0;
-                // Occasional projectile
                 if(Math.random() < 0.01) player2.shoot();
             } else if (range < 80) {
-                // Melee range
                 player2.velocity.x = 0;
                 if(Math.random() < 0.03) player2.attack('punch');
                 if(Math.random() < 0.02) player2.attack('kick');
-            } else {
-                // Mid range - wait or slow approach
-                player2.velocity.x = (dist > 0 ? 0.5 : -0.5);
-            }
-            
-            // AI Special
-            if(player2.special >= 100 && Math.random() < 0.05) {
-                player2.attack('special');
-            }
+            } else { player2.velocity.x = (dist > 0 ? 0.5 : -0.5); }
+            if(player2.special >= 100 && Math.random() < 0.05) player2.attack('special');
         }
-
-        // --- COMBAT COLLISIONS (MELEE) ---
         
         // P1 Hits P2
-        // We check specific attack frames to ensure the hit syncs with the animation extension
         if(player1.isAttacking && player1.attackFrame === 4 && checkCollision(player1, player2)) {
-            if(player1.attackType !== 'shoot') { // Shooting is handled by projectile logic
-                let baseDmg = (player1.attackType==='kick' ? 8 : 5);
-                // Special melee attacks (Like Volt's dash)
-                if(player1.attackType === 'special') baseDmg = 20;
-                
+            if(player1.attackType !== 'shoot') { 
+                let baseDmg = (player1.attackType==='kick' ? 12 : 8); // INCREASED DAMAGE
+                if(player1.attackType === 'special') baseDmg = 35; 
                 player2.takeHit(baseDmg * player1.stats.dmg);
+                if(player1.special < 100) player1.special += 20; // FAST CHARGE ON HIT
                 updateBars();
             }
         }
@@ -673,105 +622,65 @@
         // P2 Hits P1
         if(player2.isAttacking && player2.attackFrame === 4 && checkCollision(player2, player1)) {
             if(player2.attackType !== 'shoot') {
-                let baseDmg = (player2.attackType==='kick' ? 8 : 5);
-                if(player2.attackType === 'special') baseDmg = 20;
-
+                let baseDmg = (player2.attackType==='kick' ? 12 : 8); // INCREASED DAMAGE
+                if(player2.attackType === 'special') baseDmg = 35;
                 player1.takeHit(baseDmg * player2.stats.dmg);
+                if(player2.special < 100) player2.special += 20; // FAST CHARGE ON HIT
                 updateBars();
             }
         }
 
-        // Round End Check
-        if(player1.health <= 0 || player2.health <= 0) {
-            endRound(player1.health <= 0 ? player2 : player1);
-        }
+        if(player1.health <= 0 || player2.health <= 0) endRound(player1.health <= 0 ? player2 : player1);
     }
 
     function updateBars() {
-        // Health
         document.getElementById('p1Health').style.width = (player1.health/player1.maxHealth)*100 + '%';
         document.getElementById('p2Health').style.width = (player2.health/player2.maxHealth)*100 + '%';
         
-        // Special Meter Gain (Passive + On Hit)
-        if(player1.special < 100) { 
-            player1.special += 0.5; // Slow passive gain
-            // Bonus gain on successful hits is handled in collision, but we verify bounds here
-            if(player1.special > 100) player1.special = 100;
-            document.getElementById('p1Special').style.width = player1.special + '%'; 
-        }
-        if(player2.special < 100) { 
-            player2.special += 0.5; 
-            if(player2.special > 100) player2.special = 100;
-            document.getElementById('p2Special').style.width = player2.special + '%'; 
-        }
+        // Passive Charge
+        if(player1.special < 100) { player1.special += 0.2; document.getElementById('p1Special').style.width = player1.special + '%'; }
+        if(player2.special < 100) { player2.special += 0.2; document.getElementById('p2Special').style.width = player2.special + '%'; }
     }
 
     function endRound(winner) {
-        gameActive = false;
-        clearTimeout(timerId);
-        winner.wins++;
-        
-        // Update Round Dots
+        gameActive = false; clearTimeout(timerId); winner.wins++;
         let dotContainer = winner.isP1 ? document.getElementById('p1Rounds') : document.getElementById('p2Rounds');
         let dots = dotContainer.getElementsByClassName('round-dot');
         if(dots[winner.wins-1]) dots[winner.wins-1].classList.add('active');
 
-        // Check Match Win
         if(winner.wins >= 2) {
             document.getElementById('endScreen').classList.add('active');
             let txt = document.getElementById('winnerText');
             txt.innerText = winner.stats.name + " WINS MATCH";
             txt.style.color = winner.stats.accent;
         } else {
-            // Next Round
             roundNumber++;
             document.getElementById('round-overlay').innerText = "ROUND " + roundNumber;
             document.getElementById('round-overlay').style.display = 'block';
-            
-            setTimeout(() => {
-                resetRound();
-            }, 2000);
+            setTimeout(() => { resetRound(); }, 2000);
         }
     }
 
     function resetRound() {
-        player1.reset();
-        player2.reset();
-        projectiles = []; // Clear bullets
-        updateBars();
-        timer = 99;
-        document.getElementById('timer').innerText = timer;
+        player1.reset(); player2.reset(); projectiles = []; updateBars();
+        timer = 99; document.getElementById('timer').innerText = timer;
         document.getElementById('round-overlay').style.display = 'none';
-        gameActive = true;
-        decreaseTimer();
-        gameLoop();
+        gameActive = true; decreaseTimer(); gameLoop();
     }
 
-    // --- UI & SETUP ---
     let p1Sel = null, p2Sel = null;
     const charGrid = document.getElementById('charGrid');
-    
     ROSTER.forEach((char) => {
         let d = document.createElement('div');
         d.className = 'char-card';
-        d.innerHTML = `
-            <div class='char-preview' style='background:${char.accent}'></div>
-            <div style='font-weight:bold; font-size:12px; color:${char.color}'>${char.name}</div>
-            <div class='stats-text'>${char.desc}</div>
-            <div class='special-text'>ULT: ${char.spec}</div>
-        `;
+        d.innerHTML = `<div class='char-preview' style='background:${char.accent}'></div>
+                       <div style='font-weight:bold; font-size:12px; color:${char.color}'>${char.name}</div>
+                       <div class='stats-text'>${char.desc}</div><div class='special-text'>ULT: ${char.spec}</div>`;
         d.onclick = () => {
             document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
             d.classList.add('selected');
-            if(!p1Sel) {
-                p1Sel = char;
-                document.getElementById('instruct').innerText = "SELECT OPPONENT (OR CLICK START FOR AI)";
-                document.getElementById('startBtn').disabled = false;
-            } else {
-                p2Sel = char;
-                document.getElementById('instruct').innerText = "READY TO FIGHT";
-                isAI = false;
-            }
+            if(!p1Sel) { p1Sel = char; document.getElementById('instruct').innerText = "SELECT OPPONENT (OR CLICK START FOR AI)"; document.getElementById('startBtn').disabled = false; }
+            else { p2Sel = char; document.getElementById('instruct').innerText = "READY TO FIGHT"; isAI = false; }
         };
         charGrid.appendChild(d);
     });
@@ -779,40 +688,28 @@
     document.getElementById('startBtn').onclick = () => {
         if(!p1Sel) return;
         if(!p2Sel) { p2Sel = ROSTER[Math.floor(Math.random()*ROSTER.length)]; isAI = true; }
-
         player1 = new Fighter({ position: {x: 150, y: 0}, velocity: {x:0, y:0}, stats: p1Sel, isP1: true });
         player2 = new Fighter({ position: {x: 800, y: 0}, velocity: {x:0, y:0}, stats: p2Sel, isP1: false });
         player2.facingRight = false; 
-
-        document.getElementById('p1Name').innerText = p1Sel.name;
-        document.getElementById('p2Name').innerText = p2Sel.name;
+        document.getElementById('p1Name').innerText = p1Sel.name; document.getElementById('p2Name').innerText = p2Sel.name;
         updateBars();
-
         document.getElementById('menuScreen').classList.remove('active');
         document.getElementById('round-overlay').style.display = 'block';
         setTimeout(() => { document.getElementById('round-overlay').style.display = 'none'; startGame(); }, 1000);
     };
 
-    // --- INPUT LISTENERS ---
     const keys = { a: false, d: false, ArrowLeft: false, ArrowRight: false };
-
     window.addEventListener('keydown', e => {
         if(!gameActive) return;
-        
-        // Player 1 Controls
         switch(e.key.toLowerCase()) {
             case 'a': keys.a = true; break;
             case 'd': keys.d = true; break;
             case 'w': if(player1.onGround) player1.velocity.y = -18; break;
             case 'f': player1.attack('punch'); break;
             case 'g': player1.attack('kick'); break;
-            case 'e': player1.shoot(); break; // New Projectile Key
-            case 'h': 
-                if(player1.special >= 100) player1.attack('special'); 
-                break;
+            case 'e': player1.shoot(); break;
+            case 'h': if(player1.special >= 100) player1.attack('special'); break;
         }
-
-        // Player 2 Controls (If Human)
         if(!isAI) {
             switch(e.key) {
                 case 'ArrowLeft': keys.ArrowLeft = true; break;
@@ -820,27 +717,16 @@
                 case 'ArrowUp': if(player2.onGround) player2.velocity.y = -18; break;
                 case 'k': player2.attack('punch'); break;
                 case 'l': player2.attack('kick'); break;
-                case 'o': player2.shoot(); break; // New Projectile Key
-                case ';': 
-                    if(player2.special >= 100) player2.attack('special'); 
-                    break;
+                case 'o': player2.shoot(); break;
+                case ';': if(player2.special >= 100) player2.attack('special'); break;
             }
         }
     });
 
     window.addEventListener('keyup', e => {
-        switch(e.key.toLowerCase()) {
-            case 'a': keys.a = false; break;
-            case 'd': keys.d = false; break;
-        }
-        if(!isAI) {
-            switch(e.key) {
-                case 'ArrowLeft': keys.ArrowLeft = false; break;
-                case 'ArrowRight': keys.ArrowRight = false; break;
-            }
-        }
+        switch(e.key.toLowerCase()) { case 'a': keys.a = false; break; case 'd': keys.d = false; break; }
+        if(!isAI) { switch(e.key) { case 'ArrowLeft': keys.ArrowLeft = false; break; case 'ArrowRight': keys.ArrowRight = false; break; } }
     });
-
 </script>
 </body>
 </html>
